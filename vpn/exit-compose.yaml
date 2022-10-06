@@ -1,0 +1,119 @@
+version: '3.7'
+services:
+  ipsec-client:
+    container_name: ipsec-client
+    privileged: true
+    networks:
+      vpn:
+        ipv4_address: 10.90.0.2
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    volumes:
+        - '/lib/modules:/lib/modules:ro'
+    environment:
+      VPN_SERVER_IP: "18.208.194.130"
+      VPN_IPSEC_PSK: "mahsa"
+      VPN_USER: "mahsa"
+      VPN_PASSWORD: "mahsa"
+      VERBOSE: "true"
+    image: fengzhou/ipsec-vpn-client
+  ipsec-server:
+    depends_on:
+      - ipsec-client
+    container_name: ipsec-server
+    privileged: true
+    networks:
+      vpn:
+        ipv4_address: 10.90.0.3
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    environment:
+      VPN_IPSEC_PSK: "mahsa"
+      VPN_USER: "mahsa"
+      VPN_PASSWORD: "mahsa"
+    volumes:
+        - './ikev2-vpn-data:/etc/ipsec.d'
+        - '/lib/modules:/lib/modules:ro'
+    ports:
+        - '500:500/udp'
+        - '4500:4500/udp'
+    image: hwdsl2/ipsec-vpn-server
+  wireguard-server:
+    depends_on:
+      - ipsec-client
+    container_name: wireguard-server
+    privileged: true
+    networks:
+      vpn:
+        ipv4_address: 10.90.0.4
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      PEERS: 2
+      PEERDNS: "auto"
+      INTERNAL_SUBNET: "192.168.13.0"
+      ALLOWEDIPS: "0.0.0.0/0"
+      LOG_CONFS: "true"
+      SERVERPORT: 4443
+    volumes:
+        - '/lib/modules:/lib/modules:ro'
+    ports:
+        - '4443:51820/udp'
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    image: linuxserver/wireguard
+  v2ray-server:
+    depends_on:
+      - ipsec-client
+    container_name: v2ray-server
+    privileged: true
+    networks:
+      vpn:
+        ipv4_address: 10.90.0.5
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+    volumes:
+        - ./v2ray:/etc/v2ray
+        - ./v2ray/nginx/ssl:/ssl/
+    ports:
+        - "8000-8100:1000-1100"
+    image: teddysun/v2ray
+  nginx:
+    image: nginx:latest
+    container_name: v2ray-nginx
+    restart: unless-stopped
+    networks:
+      vpn:
+        ipv4_address: 10.90.0.6
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # - ./v2ray/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./v2ray/nginx/mahsa.conf:/etc/nginx/conf.d/mahsa.conf
+      - ./v2ray/nginx/ssl:/ssl/
+  pingtunnel-server:
+    depends_on:
+      - ipsec-client
+    container_name: pingtunnel-server
+    privileged: true
+    networks:
+      vpn:
+        ipv4_address: 10.90.0.7
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+    command: "./pingtunnel -type server -key 1401"
+    image: esrrhs/pingtunnel
+networks:
+  vpn:
+    external: true

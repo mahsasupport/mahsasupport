@@ -1,0 +1,246 @@
+{
+    "log": {
+        "loglevel": "warning"
+    },
+    "dns": {
+        "servers": [
+            "8.8.8.8",
+            "8.8.4.4"
+        ],
+        "tag": "dns_inbound"
+    },
+    "routing": {
+        "domainStrategy": "AsIs",
+        "rules": [
+            {
+                "type": "field",
+                "ip": [
+                    "geoip:private"
+                ],
+                "outboundTag": "block"
+            }
+        ]
+    },
+    "inbounds": [
+        {
+            "protocol": "shadowsocks",
+            "port": 1001,
+            "listen": "0.0.0.0",
+            "settings": {
+                "method": "chacha20-ietf-poly1305",
+                "password": "mahsa"
+            },
+            "streamSettings": {
+                "network": "tcp"
+            }
+        },
+        {
+            "protocol": "shadowsocks",
+            "port": 1002,
+            "listen": "0.0.0.0",
+            "settings": {
+                "method": "chacha20-ietf-poly1305",
+                "password": "mahsa"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none"
+            }
+        },
+        {
+            "protocol": "shadowsocks",
+            "port": 1003,
+            "listen": "10.90.0.5",
+            "settings": {
+                "method": "chacha20-ietf-poly1305",
+                "password": "mahsa"
+            },
+            "streamSettings": {
+                "network": "grpc",
+                "grpcSettings": {
+                    "serviceName": "gpath"
+                }
+            }
+        },
+
+        {
+            "protocol": "vmess",
+            "listen": "0.0.0.0",
+            "port": "1004",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "35e7752e-4097-11ed-b878-0242ac120002",
+                        "alterId": 0
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp"
+            }
+        },
+        {
+            "listen": "0.0.0.0",
+            "port": 1005,
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "35e7752e-4097-11ed-b878-0242ac120002",
+                        "alterId": 0
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "tls",
+                "tlsSettings": {
+                    "certificates": [
+                        {
+                            "certificateFile": "/ssl/cert.pem",
+                            "keyFile": "/ssl/key.pem"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "listen": "0.0.0.0",
+            "port": 1006,
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "35e7752e-4097-11ed-b878-0242ac120002",
+                        "alterId": 0
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none"
+            }
+        },
+        {
+            "listen": "0.0.0.0",
+            "port": 1007,
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "35e7752e-4097-11ed-b878-0242ac120002",
+                        "alterId": 0
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "tls",
+                "tlsSettings": {
+                    "certificates": [
+                        {
+                            "certificateFile": "/ssl/cert.pem",
+                            "keyFile": "/ssl/key.pem"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "listen": "0.0.0.0",
+            "port": 1008,
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "35e7752e-4097-11ed-b878-0242ac120002"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "kcp",
+                "kcpSettings": {
+                    "seed": "seed"
+                }
+            }
+        },
+
+        {
+            "listen": "0.0.0.0",
+            "port": 1009,
+            "protocol": "trojan",
+            "settings": {
+                "clients": [
+                {
+                    "password":"mahsa",
+                    "email": "mahsa@support.com"
+                }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "tls",
+                "tlsSettings": {
+                    "alpn": [
+                        "http/1.1"
+                    ],
+                    "certificates": [
+                        {
+                            "certificateFile": "/ssl/cert.pem",
+                            "keyFile": "/ssl/key.pem"
+                        }
+                    ]
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                "http",
+                "tls"
+                ]
+            }
+        },
+        {
+            "listen": "0.0.0.0",
+            "port": 1010,
+            "protocol": "trojan",
+            "settings": {
+                "clients": [
+                {
+                    "password":"mahsa",
+                    "email": "mahsa@support.com"
+                }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "path": "/trpath"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                "http",
+                "tls"
+                ]
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "direct",
+            "streamSettings": {
+                "sockopt": {
+                    "mark": 255
+                }
+            }
+        },
+        {
+            "protocol": "blackhole",
+            "tag": "block"
+        }
+    ]
+}
